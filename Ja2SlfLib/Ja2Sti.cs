@@ -9,18 +9,30 @@ public class Ja2Sti
 {
     private const int HeaderSize = 64;
     
-    private readonly string _filename;
+    private readonly byte[] _bytes;
     private StiHeader _header;
     private bool _is8Otherwise16Bit;
+    private string _path;
+    private string _prefix;
 
     public Ja2Sti(string filename)
     {
-        _filename = filename;
+        _bytes = File.ReadAllBytes(filename);
     }
 
-    public List<string> Load()
+    public Ja2Sti(byte[] bytes)
     {
-        _header = StiHeader.FromFile(_filename);
+        _bytes = bytes;
+    }
+
+    public List<string> ExtractImages(string path, string prefix = null)
+    {
+        _path = path;
+        _prefix = prefix;
+
+        using var ms = new MemoryStream(_bytes);
+        _header = new StiHeader(new KaitaiStream(_bytes));
+        //StiHeader.FromFile(_filename);
         
         _is8Otherwise16Bit = Is8BitSti();
         if (!_is8Otherwise16Bit)
@@ -30,10 +42,10 @@ public class Ja2Sti
                 throw new FormatException("Supported only 8 and 16 bit images");
         }
 
-        return !_is8Otherwise16Bit ? Load16Bit() : Load8Bit();
+        return !_is8Otherwise16Bit ? Save16Bit() : Save8Bit();
     }
 
-    private List<string> Load16Bit()
+    private List<string> Save16Bit()
     {
         var result = new List<string>();
 
@@ -66,7 +78,8 @@ public class Ja2Sti
 
         var ii = 0;
         // ReSharper disable once RedundantAssignment
-        var newFilename = $"{_filename}_{ii++}.png";
+        var newFilename = Path.Combine(_path, $"{_prefix}_{ii++}.png");
+            
         bmp.Save(newFilename, ImageFormat.Png);
         result.Add(newFilename);
 
@@ -114,7 +127,7 @@ public class Ja2Sti
         return pixels;
     }
 
-    private List<string> Load8Bit()
+    private List<string> Save8Bit()
     {
         var result = new List<string>();
 
@@ -139,7 +152,7 @@ public class Ja2Sti
             var deCompressedData = Etrle.Decompress(compressedData);
             var bmp = Create8BppBmp(deCompressedData, subImageHeader.Width, subImageHeader.Height, palette);
 
-            var newFilename = $"{_filename}_{i++}.png";
+            var newFilename = Path.Combine(_path, $"{_prefix}_{i++}.png");
             bmp.Save(newFilename, ImageFormat.Png);
             result.Add(newFilename);
         }
@@ -235,14 +248,14 @@ public class Ja2Sti
         return result;
     }
 
-    public bool Is16BitSti()
+    private bool Is16BitSti()
     {
         return _header.FileIdentifier == "STCI"
                && _header.IsRgb
                && !_header.IsIndexed;
     }
 
-    public bool Is8BitSti()
+    private bool Is8BitSti()
     {
         return _header.FileIdentifier == "STCI"
                && _header.IsIndexed

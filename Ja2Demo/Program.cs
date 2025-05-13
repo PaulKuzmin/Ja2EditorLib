@@ -49,7 +49,7 @@ namespace Ja2Demo
                 try
                 {
                     var sti = new Ja2Sti(filename);
-                    sti.Load();
+                    sti.ExtractImages("");
                 }
                 catch (Exception e)
                 {
