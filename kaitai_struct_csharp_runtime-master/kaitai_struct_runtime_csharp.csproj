@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1701;1702;CS1591</NoWarn>
+
+    <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>KaitaiStruct.Runtime.CSharp</PackageId>
+    <Authors />
+    <Company>Kaitai Project</Company>
+    <Description>This library implements Kaitai Struct API for C#.</Description>
+    <Product>Kaitai Struct Runtime</Product>
+    <Copyright>Copyright © Kaitai Project 2016-2024</Copyright>
+    <AssemblyName>Kaitai.Struct.Runtime</AssemblyName>
+    <RootNamespace>Kaitai</RootNamespace>
+    <PackageProjectUrl>https://kaitai.io/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kaitai-io/kaitai_struct_csharp_runtime</RepositoryUrl>
+    <PackageTags>Kaitai Struct File-Format Binary Protocols</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+
+    <Version>0.10.0.0</Version>
+
+    <PackageReleaseNotes>Update to version 0.10</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
