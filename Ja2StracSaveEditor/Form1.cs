@@ -79,7 +79,7 @@ public partial class Form1 : Form
     private void LoadAttributes()
     {
         tabPage1.SuspendLayout();
-        tabPage1.Visible = false;
+        //tabPage1.Visible = false;
         tabPage1.Controls.Clear();
 
         try
@@ -241,7 +241,7 @@ public partial class Form1 : Form
         finally
         {
             tabPage1.ResumeLayout();
-            tabPage1.Visible = true;
+            //tabPage1.Visible = true;
         }
     }
 
@@ -265,5 +265,20 @@ public partial class Form1 : Form
         _soldier = soldier;
 
         LoadAttributes();
+        LoadInventory();
+    }
+
+    private void LoadInventory()
+    {
+        try
+        {
+            if (_soldier?.inv == null) return;
+            ;
+        }
+        catch (Exception exc)
+        {
+            MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
     }
 }

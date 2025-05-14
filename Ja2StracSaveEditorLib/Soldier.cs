@@ -29,6 +29,31 @@ public enum SkillTrait
     NUM_SKILLTRAITS
 };
 
+public enum InvSlotPos
+{
+    HELMETPOS = 0,
+    VESTPOS,
+    LEGPOS,
+    HEAD1POS,
+    HEAD2POS,
+    HANDPOS,
+    SECONDHANDPOS,
+    BIGPOCK1POS,
+    BIGPOCK2POS,
+    BIGPOCK3POS,
+    BIGPOCK4POS,
+    SMALLPOCK1POS,
+    SMALLPOCK2POS,
+    SMALLPOCK3POS,
+    SMALLPOCK4POS,
+    SMALLPOCK5POS,
+    SMALLPOCK6POS,
+    SMALLPOCK7POS,
+    SMALLPOCK8POS, // = 18, so 19 pockets needed
+
+    NUM_INV_SLOTS,
+};
+
 public class PathSt : INotifyPropertyChanged
 {
 #pragma warning disable CS0067 // The event is never used

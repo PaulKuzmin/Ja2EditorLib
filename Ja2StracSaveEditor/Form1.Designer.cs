@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
             SettingsBtn = new Button();
             linkLabel1 = new LinkLabel();
@@ -37,10 +38,12 @@
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             tabPage2 = new TabPage();
+            inventoryControl1 = new InventoryControl();
             SoldiersLst = new ListBox();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             tabControl1.SuspendLayout();
+            tabPage2.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -52,7 +55,7 @@
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(800, 47);
+            panel1.Size = new Size(1406, 47);
             panel1.TabIndex = 0;
             // 
             // SettingsBtn
@@ -103,7 +106,7 @@
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(0, 47);
             panel2.Name = "panel2";
-            panel2.Size = new Size(800, 539);
+            panel2.Size = new Size(1406, 595);
             panel2.TabIndex = 1;
             // 
             // tabControl1
@@ -111,10 +114,10 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Dock = DockStyle.Fill;
-            tabControl1.Location = new Point(172, 0);
+            tabControl1.Location = new Point(134, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(628, 539);
+            tabControl1.Size = new Size(1272, 595);
             tabControl1.TabIndex = 1;
             // 
             // tabPage1
@@ -129,13 +132,23 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(inventoryControl1);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(620, 511);
+            tabPage2.Size = new Size(1264, 567);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Inventory";
             tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // inventoryControl1
+            // 
+            inventoryControl1.BackgroundImage = (Image)resources.GetObject("inventoryControl1.BackgroundImage");
+            inventoryControl1.BackgroundImageLayout = ImageLayout.Zoom;
+            inventoryControl1.Location = new Point(3, 3);
+            inventoryControl1.Name = "inventoryControl1";
+            inventoryControl1.Size = new Size(1264, 552);
+            inventoryControl1.TabIndex = 0;
             // 
             // SoldiersLst
             // 
@@ -144,7 +157,7 @@
             SoldiersLst.ItemHeight = 15;
             SoldiersLst.Location = new Point(0, 0);
             SoldiersLst.Name = "SoldiersLst";
-            SoldiersLst.Size = new Size(172, 539);
+            SoldiersLst.Size = new Size(134, 595);
             SoldiersLst.TabIndex = 0;
             SoldiersLst.SelectedIndexChanged += SoldiersLst_SelectedIndexChanged;
             // 
@@ -152,7 +165,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 586);
+            ClientSize = new Size(1406, 642);
             Controls.Add(panel2);
             Controls.Add(panel1);
             Name = "Form1";
@@ -161,6 +174,7 @@
             panel1.PerformLayout();
             panel2.ResumeLayout(false);
             tabControl1.ResumeLayout(false);
+            tabPage2.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -176,5 +190,6 @@
         private Button SaveBtn;
         private Button OpenBtn;
         private Button SettingsBtn;
+        private InventoryControl inventoryControl1;
     }
 }
