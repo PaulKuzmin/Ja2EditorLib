@@ -8,7 +8,7 @@ namespace Ja2Demo
         {
             using var save = new SaveGame(@"F:\ja2\saves\2025-05-06t23-48-32z-1.sav", @"F:\ja2\JA2Stracciatella");
             save.Load();
-
+            ;
             /*
             var slfFilenames = Directory.GetFiles(@"F:\ja2\Ja2Game\Data\", "*.slf", SearchOption.AllDirectories);
             foreach (var slfFilename in slfFilenames)
