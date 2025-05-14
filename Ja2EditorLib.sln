@@ -7,11 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ja2Demo", "Ja2Demo\Ja2Demo.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ja2StracSaveEditorLib", "Ja2StracSaveEditorLib\Ja2StracSaveEditorLib.csproj", "{F688ED85-A29D-4563-9F4C-DE708D1E25ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ja2SlfLib", "Ja2SlfLib\Ja2SlfLib.csproj", "{6609CBE9-85B5-4DE8-9AD9-1F0F6A4AFE1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ja2SlfLib", "Ja2SlfLib\Ja2SlfLib.csproj", "{6609CBE9-85B5-4DE8-9AD9-1F0F6A4AFE1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{E1A338E3-E21B-4024-92B7-77DF5BC7C162}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kaitai_struct_runtime_csharp", "kaitai_struct_csharp_runtime-master\kaitai_struct_runtime_csharp.csproj", "{313A0EDA-373A-4937-859F-CCC27937ADEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ja2StracSaveEditor", "Ja2StracSaveEditor\Ja2StracSaveEditor.csproj", "{3B5377B4-E6C0-40A7-8F3E-519C2C893686}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{313A0EDA-373A-4937-859F-CCC27937ADEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{313A0EDA-373A-4937-859F-CCC27937ADEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{313A0EDA-373A-4937-859F-CCC27937ADEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B5377B4-E6C0-40A7-8F3E-519C2C893686}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B5377B4-E6C0-40A7-8F3E-519C2C893686}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B5377B4-E6C0-40A7-8F3E-519C2C893686}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B5377B4-E6C0-40A7-8F3E-519C2C893686}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

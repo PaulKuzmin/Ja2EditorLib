@@ -1,11 +1,33 @@
 ﻿// ReSharper disable InconsistentNaming
 
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Ja2StracSaveEditorLib.Managers;
 using Ja2StracSaveEditorLib.Structures;
 using Ja2StracSaveEditorLib.Utilities;
 
 namespace Ja2StracSaveEditorLib;
+
+public enum SkillTrait
+{
+    NO_SKILLTRAIT = 0,
+    LOCKPICKING,
+    HANDTOHAND,
+    ELECTRONICS,
+    NIGHTOPS,
+    THROWING,
+    TEACHING,
+    HEAVY_WEAPS,
+    AUTO_WEAPS,
+    STEALTHY,
+    AMBIDEXT,
+    THIEF,
+    MARTIALARTS,
+    KNIFING,
+    ONROOF,
+    CAMOUFLAGED,
+    NUM_SKILLTRAITS
+};
 
 public class PathSt : INotifyPropertyChanged
 {
@@ -123,7 +145,12 @@ public class Soldier : INotifyPropertyChanged
     public DateTime? AICounter { get; set; }
     public DateTime? FadeCounter { get; set; }
 
+    [EnumDataType(typeof(SkillTrait))]
+    [Display(Name = "Skill 1", Order = 999)]
     public byte ubSkillTrait1 { get; set; }
+
+    [EnumDataType(typeof(SkillTrait))]
+    [Display(Name = "Skill 2", Order = 999)]
     public byte ubSkillTrait2 { get; set; }
 
     public sbyte bDexterity { get; set; } // dexterity (hand coord) value
@@ -582,8 +609,8 @@ public class Soldier : INotifyPropertyChanged
         reader.Skip(1);
 
         s.ubBodyType = reader.ReadByte();
-        s.bActionPoints = reader.ReadSByte();
-        s.bInitialActionPoints = reader.ReadSByte();
+        s.bActionPoints = reader.ReadSByte(nameof(bActionPoints));
+        s.bInitialActionPoints = reader.ReadSByte(nameof(bInitialActionPoints));
 
         reader.Skip(3);
 
@@ -609,7 +636,7 @@ public class Soldier : INotifyPropertyChanged
         s.bBreath = reader.ReadSByte(nameof(bBreath));
         s.bBreathMax = reader.ReadSByte(nameof(bBreathMax));
         s.bStealthMode = reader.ReadSByte();
-        s.sBreathRed = reader.ReadInt16(nameof(sBreathRed));
+        s.sBreathRed = reader.ReadInt16();
         s.fDelayedMovement = reader.ReadBoolean();
 
         reader.Skip(1);
@@ -761,7 +788,7 @@ public class Soldier : INotifyPropertyChanged
         s.bTargetCubeLevel = reader.ReadSByte();
         s.sLastTarget = reader.ReadInt16();
         s.bTilesMoved = reader.ReadSByte();
-        s.bLeadership = reader.ReadSByte();
+        s.bLeadership = reader.ReadSByte(nameof(bLeadership));
         s.dNextBleed = reader.ReadSingle(); // EXTR_FLOAT
         s.fWarnedAboutBleeding = reader.ReadBoolean();
         s.fDyingComment = reader.ReadBoolean();
