@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
 
 // ReSharper disable InconsistentNaming
 
@@ -110,11 +108,11 @@ public class Item
     }
 }
 
-public class ItemDataManager
+public class ContentDataManager
 {
     public List<Item> Items { get; set; }
 
-    public static ItemDataManager LoadFromFile(Dictionary<string, int?> filePaths)
+    public static ContentDataManager LoadFromFile(Dictionary<string, int?> filePaths)
     {
         var items = new List<Item>();
         foreach (var filePathClass in filePaths)
@@ -126,13 +124,19 @@ public class ItemDataManager
                 fileItems = fileItems.Select(s =>
                 {
                     s.usItemClass = filePathClass.Value.Value;
+                    if (!string.IsNullOrWhiteSpace(s.internalType))
+                    {
+                        var itemClass = GetItemClass(s.internalType);
+                        if (itemClass != null) s.usItemClass = itemClass.Value;
+                    }
+
                     return s;
                 }).ToList();
 
             items.AddRange(fileItems);
         }
 
-        return new ItemDataManager { Items = items };
+        return new ContentDataManager { Items = items };
     }
 
     public Item Get(ushort itemIndex)
@@ -146,6 +150,7 @@ public class ItemDataManager
 
         ITEMDEFINE? defValue = null;
         if (Enum.IsDefined(typeof(ITEMDEFINE), (int)itemIndex))
+            // ReSharper disable once RedundantCast
             defValue = (ITEMDEFINE)(int)itemIndex;
 
         if (item == null && defValue == null)
@@ -154,5 +159,31 @@ public class ItemDataManager
         }
 
         return itemIndex;
+    }
+
+    public static int? GetItemClass(string internalType)
+    {
+        return internalType switch
+        {
+            "NOWEAPON" => Item.IC_NONE,
+            "PUNCH" => Item.IC_PUNCH,
+            "THROWN" => Item.IC_THROWN,
+            "PISTOL" => Item.IC_GUN,
+            "M_PISTOL" => Item.IC_GUN,
+            "SMG" => Item.IC_GUN,
+            "SN_RIFLE" => Item.IC_GUN,
+            "RIFLE" => Item.IC_GUN,
+            "ASRIFLE" => Item.IC_GUN,
+            "SHOTGUN" => Item.IC_GUN,
+            "LMG" => Item.IC_GUN,
+            "BLADE" => Item.IC_BLADE,
+            "THROWINGBLADE" => Item.IC_THROWING_KNIFE,
+            "PUNCHWEAPON" => Item.IC_PUNCH,
+            "LAUNCHER" => Item.IC_LAUNCHER,
+            "LAW" => Item.IC_GUN,
+            "CANNON" => Item.IC_GUN,
+            "MONSTSPIT" => Item.IC_GUN,
+            _ => null
+        };
     }
 }

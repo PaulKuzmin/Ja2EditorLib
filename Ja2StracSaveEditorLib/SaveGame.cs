@@ -29,7 +29,7 @@ public class SaveGame : IDisposable
     private int _encryptionSet;
     private uint _mercProfilesOffset;
 
-    private readonly ItemDataManager _itemDataManager;
+    private readonly ContentDataManager _itemDataManager;
 
     public List<MercProfile> MercProfiles { get; } = new List<MercProfile>();
     public List<Soldier> Soldiers { get; } = new List<Soldier>();
@@ -42,7 +42,7 @@ public class SaveGame : IDisposable
         _fileReader = new BinaryReader(_fileStream);
         _fileWriter = new BinaryWriter(_fileStream);
 
-        _itemDataManager = ItemDataManager.LoadFromFile(new Dictionary<string, int?>
+        _itemDataManager = ContentDataManager.LoadFromFile(new Dictionary<string, int?>
         {
             { Path.Combine(pathToStracciatella, _pathToItemsJson), null},
             { Path.Combine(pathToStracciatella, _pathToMagazinesJson), Item.IC_AMMO },

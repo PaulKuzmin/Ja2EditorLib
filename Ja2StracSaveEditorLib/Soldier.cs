@@ -141,7 +141,7 @@ public class Soldier : INotifyPropertyChanged
 
     public bool fContinueMoveAfterStanceChange { get; set; }
 
-    public AnimationSurfaceCacheType AnimCache { get; set; }
+    //public AnimationSurfaceCacheType AnimCache { get; set; }
 
     public sbyte bLife { get; set; } // current life (hit points or health)
     public byte bSide { get; set; }
@@ -566,7 +566,7 @@ public class Soldier : INotifyPropertyChanged
 
     public Dictionary<string, BinaryReaderOffsetItem> Offsets { get; private set; }
 
-    public static Soldier Deserialize(byte[] data, ItemDataManager itemsManager, BinaryReaderOffsetItem offset)
+    public static Soldier Deserialize(byte[] data, ContentDataManager itemsManager, BinaryReaderOffsetItem offset)
     {
         //File.WriteAllBytes("soldier.bin", data);
         using var memoryStream = new MemoryStream(data);
@@ -917,7 +917,9 @@ public class Soldier : INotifyPropertyChanged
 
         s.dHeightAdjustment = reader.ReadSingle(); // EXTR_FLOAT
 
-        Console.WriteLine($"bMorale = {reader.BaseStream.Position}"); //1736
+        if (reader.BaseStream.Position != 1736)
+            throw new FormatException($"{nameof(bMorale)} must be at 1736");
+
         s.bMorale = reader.ReadSByte(nameof(bMorale));
         s.bTeamMoraleMod = reader.ReadSByte();
         s.bTacticalMoraleMod = reader.ReadSByte();
@@ -1065,7 +1067,9 @@ public class Soldier : INotifyPropertyChanged
 
         reader.Skip(1);
 
-        Console.WriteLine($"sectorX = {reader.BaseStream.Position} must be 1922");
+        if (reader.BaseStream.Position != 1922)
+            throw new FormatException("sectorX must be at 1922");
+
         var sectorX = reader.ReadInt16();
         var sectorY = reader.ReadInt16();
         var sectorZ = reader.ReadSByte();
@@ -1082,7 +1086,6 @@ public class Soldier : INotifyPropertyChanged
 
         reader.Skip(1);
 
-        Console.WriteLine($"usMedicalDeposit = {reader.BaseStream.Position}");
         s.usMedicalDeposit = reader.ReadUInt16();
         s.usLifeInsurance = reader.ReadUInt16();
 
@@ -1239,7 +1242,9 @@ public class Soldier : INotifyPropertyChanged
 
         s.PanelAnimateCounter = null;
 
-        Console.WriteLine($"checksum = {reader.BaseStream.Position}, must be 2208");
+        if (reader.BaseStream.Position != 2208)
+            throw new FormatException($"{nameof(CheckSum)} must be at 2208");
+
         s.CheckSum = reader.ReadUInt32(nameof(CheckSum));
 
         s.bCurrentCivQuote = reader.ReadSByte();
@@ -1329,7 +1334,7 @@ public class Soldier : INotifyPropertyChanged
         return s;
     }
 
-    private static ObjectType ExtractObject(BinaryReader reader, ItemDataManager itemsManager)
+    private static ObjectType ExtractObject(BinaryReader reader, ContentDataManager itemsManager)
     {
         var start = reader.BaseStream.Position;
 

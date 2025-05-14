@@ -1,5 +1,4 @@
-﻿using Ja2SlfLib;
-using Kaitai;
+﻿using Ja2StracSaveEditorLib;
 
 namespace Ja2Demo
 {
@@ -7,6 +6,9 @@ namespace Ja2Demo
     {
         static void Main(string[] args)
         {
+            using var save = new SaveGame(@"F:\ja2\saves\2025-05-06t23-48-32z-1.sav", @"F:\ja2\JA2Stracciatella");
+            save.Load();
+
             /*
             var slfFilenames = Directory.GetFiles(@"F:\ja2\Ja2Game\Data\", "*.slf", SearchOption.AllDirectories);
             foreach (var slfFilename in slfFilenames)
@@ -39,6 +41,7 @@ namespace Ja2Demo
                 }
             }
             */
+            /*
             Console.WriteLine("Convert");
 
             var filenames = Directory.GetFiles(@"F:\ja2\Ja2EditorLib\Ja2Demo\bin\Debug\net8.0-windows\", "*.sti",
@@ -58,6 +61,7 @@ namespace Ja2Demo
                     Console.WriteLine();
                 }
             }
+            */
         }
     }
 }
