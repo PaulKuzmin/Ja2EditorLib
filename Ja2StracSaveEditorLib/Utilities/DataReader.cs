@@ -83,4 +83,25 @@ public static class DataReader
 
         return property != null ? property.GetValue(target) : null;
     }
+
+    //
+
+    public static void WriteSbytes(this BinaryWriter writer, sbyte[] data, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            var value = (data != null && i < data.Length) ? data[i] : (sbyte)0;
+            writer.Write(value);
+        }
+    }
+
+    public static void WriteUshorts(this BinaryWriter writer, ushort[] data, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            var value = (data != null && i < data.Length) ? data[i] : (ushort)0;
+            writer.Write(value);
+        }
+    }
+
 }

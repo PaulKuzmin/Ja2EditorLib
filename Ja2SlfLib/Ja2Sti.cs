@@ -140,6 +140,8 @@ public class Ja2Sti
         var paletteSize = header8Bit.NumberOfPaletteColors * 3;
         var paletteBytes = _header.M_Io.ReadBytes(paletteSize);
         var palette = Get8BitRgbPalette(paletteBytes, header8Bit.NumberOfPaletteColors);
+        var transparent = new Ja2StiPaletteColor { R = 0, G = 0, B = 0 };
+        if (palette.Count > 0) transparent = palette[0];
 
         var subImageHeaderSize = header8Bit.NumberOfImages * 16;
         var subImageHeaderBytes = _header.M_Io.ReadBytes(subImageHeaderSize);
@@ -150,7 +152,8 @@ public class Ja2Sti
         {
             var compressedData = _header.M_Io.ReadBytes(subImageHeader.Length);
             var deCompressedData = Etrle.Decompress(compressedData);
-            var bmp = Create8BppBmp(deCompressedData, subImageHeader.Width, subImageHeader.Height, palette);
+            var bmp8 = Create8BppBmp(deCompressedData, subImageHeader.Width, subImageHeader.Height, palette);
+            var bmp = Convert8BppTo32Bpp(bmp8, transparent);
 
             var newFilename = Path.Combine(_path, $"{_prefix}_{i++}.png");
             bmp.Save(newFilename, ImageFormat.Png);
@@ -199,6 +202,66 @@ public class Ja2Sti
         bmp.UnlockBits(bmpData);
 
         return bmp;
+    }
+
+    private Bitmap Convert8BppTo32Bpp(Bitmap source, Ja2StiPaletteColor transparentColor)
+    {
+        if (source.PixelFormat != PixelFormat.Format8bppIndexed)
+            throw new ArgumentException("Source bitmap must be Format8bppIndexed");
+
+        int width = source.Width;
+        int height = source.Height;
+
+        Bitmap target = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
+        ColorPalette palette = source.Palette;
+
+        // Получаем прозрачный цвет
+        Color transparent = Color.FromArgb(transparentColor.R, transparentColor.G, transparentColor.B);
+
+        // Забираем пиксельные данные
+        BitmapData sourceData = source.LockBits(
+            new Rectangle(0, 0, width, height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format8bppIndexed);
+
+        try
+        {
+            unsafe
+            {
+                byte* srcScan0 = (byte*)sourceData.Scan0;
+                int srcStride = sourceData.Stride;
+
+                for (int y = 0; y < height; y++)
+                {
+                    byte* srcRow = srcScan0 + y * srcStride;
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        byte paletteIndex = srcRow[x];
+                        Color color = palette.Entries[paletteIndex];
+
+                        // Сравниваем с прозрачным цветом
+                        bool isTransparent =
+                            color.R == transparent.R &&
+                            color.G == transparent.G &&
+                            color.B == transparent.B;
+
+                        Color finalColor = isTransparent
+                            ? Color.FromArgb(0, color.R, color.G, color.B)
+                            : Color.FromArgb(255, color.R, color.G, color.B);
+
+                        target.SetPixel(x, y, finalColor); // можно оптимизировать
+                    }
+                }
+            }
+        }
+        finally
+        {
+            source.UnlockBits(sourceData);
+        }
+
+        return target;
     }
 
     private List<Ja2StiPaletteColor> Get8BitRgbPalette(byte[] bytes, uint numberOfPaletteColors)

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Ja2StracSaveEditorLib.Managers;
 
 namespace Ja2StracSaveEditor;
 
@@ -13,9 +14,29 @@ public enum InventorySlotSize
 public class InventorySlot : INotifyPropertyChanged
 {
     private bool _asteriskVisible = true;
-    private int _count = 99;
+    private int _count = -99;
+    private int _bulletsCount = -99;
+    private int _status = 1;
     private string _buttonText = string.Empty;
+    private string _buttonImage = string.Empty;
+    private Item _item;
     public VerticalProgressBar ProgressBar { get; }
+
+    public int Status
+    {
+        get => _status;
+        set
+        {
+            if (value == _status) return;
+            
+            if (value > ProgressBar.Maximum) ProgressBar.Value = ProgressBar.Maximum;
+            if (value < ProgressBar.Minimum) ProgressBar.Value = ProgressBar.Minimum;
+            ProgressBar.Value = value;
+
+            _status = value;
+            OnPropertyChanged();
+        }
+    }
 
     public bool AsteriskVisible
     {
@@ -37,13 +58,29 @@ public class InventorySlot : INotifyPropertyChanged
         set
         {
             if (value == _count) return;
-            CountLabel.Text = $@"{value}";
+            CountLabel.Text = value > 1 ? $@"{value}" : "";
+            CountLabel.Visible = value > 1;
             _count = value;
             OnPropertyChanged();
         }
     }
 
     public Label CountLabel { get; }
+
+    public int BulletsCount
+    {
+        get => _bulletsCount;
+        set
+        {
+            if (value == _bulletsCount) return;
+            BulletsCountLabel.Text = value < 0 ? "" : $@"{value}";
+            BulletsCountLabel.Visible = value >= 0;
+            _bulletsCount = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Label BulletsCountLabel { get; }
 
     public Button Button { get; }
 
@@ -59,10 +96,40 @@ public class InventorySlot : INotifyPropertyChanged
         }
     }
 
-    public InventorySlot(Point location, InventorySlotSize size = InventorySlotSize.Small, bool hasCount = true)
+    public string ButtonImage
+    {
+        get => _buttonImage;
+        set
+        {
+            if (value == _buttonImage) return;
+            _buttonImage = value;
+            try
+            {
+                Button.Image = string.IsNullOrWhiteSpace(_buttonImage) ? null : Image.FromFile(_buttonImage);
+            }
+            catch 
+            {
+                Button.BackgroundImage = null;
+            }
+            OnPropertyChanged();
+        }
+    }
+
+    public Item Item
+    {
+        get => _item;
+        set
+        {
+            if (Equals(value, _item)) return;
+            _item = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public InventorySlot(Point location, InventorySlotSize size = InventorySlotSize.Small)
     {
         ProgressBar = new VerticalProgressBar
-            { Value = 100, Maximum = 100, Minimum = 0, Location = location, Size = new Size(12, 85) };
+            { Value = Status, Maximum = 100, Minimum = 0, Location = location, Size = new Size(12, 85) };
 
         AsteriskLabel = new Label
         {
@@ -93,8 +160,25 @@ public class InventorySlot : INotifyPropertyChanged
                     InventorySlotSize.Medium => location.X + 158,
                     _ => location.X + 223
                 }, location.Y + 60),
-            Text = hasCount ? $"{Count}" : "",
-            Visible = hasCount
+            Text = Count > 0 ? $"{Count}" : "",
+            Visible = Count > 0
+        };
+
+        BulletsCountLabel = new Label
+        {
+            ForeColor = Color.Red,
+            BackColor = Color.Transparent,
+            AutoSize = true,
+            Font = new Font("Segoe UI", 14, FontStyle.Bold),
+            Location = new Point(
+                size switch
+                {
+                    InventorySlotSize.Small => location.X + 22,
+                    InventorySlotSize.Medium => location.X + 22,
+                    _ => location.X + 22
+                }, location.Y + 60),
+            Text = BulletsCount >= 0 ? $"{BulletsCount}" : "",
+            Visible = BulletsCount >= 0
         };
 
         Button = new Button()
@@ -102,6 +186,7 @@ public class InventorySlot : INotifyPropertyChanged
             BackColor = Color.Transparent,
             ForeColor = Color.White,
             AutoSize = false,
+            Font = new Font("Segoe UI", 7, FontStyle.Regular),
             Location = new Point(
                 size switch
                 {
@@ -126,6 +211,8 @@ public class InventorySlot : INotifyPropertyChanged
             Text = ButtonText
         };
         Button.FlatAppearance.BorderSize = 0;
+        Button.ImageAlign = ContentAlignment.TopCenter;
+        Button.TextAlign = ContentAlignment.BottomCenter;
         Button.SendToBack();
     }
 

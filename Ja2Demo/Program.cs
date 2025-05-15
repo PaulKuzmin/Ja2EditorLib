@@ -1,4 +1,4 @@
-﻿using Ja2StracSaveEditorLib;
+﻿using Ja2SlfLib;
 
 namespace Ja2Demo
 {
@@ -6,9 +6,11 @@ namespace Ja2Demo
     {
         static void Main(string[] args)
         {
+            /*
             using var save = new SaveGame(@"F:\ja2\saves\2025-05-06t23-48-32z-1.sav", @"F:\ja2\JA2Stracciatella");
             save.Load();
             ;
+            */
             /*
             var slfFilenames = Directory.GetFiles(@"F:\ja2\Ja2Game\Data\", "*.slf", SearchOption.AllDirectories);
             foreach (var slfFilename in slfFilenames)
@@ -62,6 +64,10 @@ namespace Ja2Demo
                 }
             }
             */
+
+            var filename = @"F:\ja2\GUN34.STI";
+            var sti = new Ja2Sti(filename);
+            sti.ExtractImages("", "GUN34");
         }
     }
 }

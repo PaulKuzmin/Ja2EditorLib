@@ -1407,7 +1407,7 @@ public class Soldier : INotifyPropertyChanged
             itemIndex = (ushort)ITEMDEFINE.NONE
         };
 
-        switch (item.GetItemClass())
+        switch (item.usItemClass)
         {
             case Item.IC_AMMO:
                 o.ubShotsLeft = reader.ReadBytes(ObjectType.MAX_OBJECTS_PER_SLOT);
@@ -1539,6 +1539,98 @@ public class Soldier : INotifyPropertyChanged
         return o;
     }
 
+    private byte[] InjectObject(ObjectType o)
+    {
+        using var ms = new MemoryStream(36);
+        using var writer = new BinaryWriter(ms);
+
+        writer.Write(o.usItemCheckSum); // записываем оригинальный item ID
+        writer.Write(o.ubNumberOfObjects);
+        writer.Write((byte)0); // skip 1 byte
+
+        var itemClass = o.Item?.usItemClass ?? Item.IC_AMMO; // по умолчанию IC_AMMO
+
+        switch (itemClass)
+        {
+            case Item.IC_AMMO:
+                writer.Write(o.ubShotsLeft);
+                writer.Write(new byte[4]);
+                break;
+
+            case Item.IC_GUN:
+                writer.Write(o.bGunStatus);
+                writer.Write(o.ubGunAmmoType);
+                writer.Write(o.ubGunShotsLeft);
+                writer.Write((byte)0); // skip
+                writer.Write(o.usGunAmmoItem);
+                writer.Write(o.bGunAmmoStatus);
+                writer.Write(new byte[5]);
+                break;
+
+            case Item.IC_KEY:
+                writer.WriteSbytes(o.bKeyStatus, 6);
+                writer.Write(o.ubKeyID);
+                writer.Write(new byte[5]);
+                break;
+
+            case Item.IC_MONEY:
+                writer.Write(o.bMoneyStatus);
+                writer.Write(new byte[3]);
+                writer.Write(o.uiMoneyAmount);
+                writer.Write(new byte[4]);
+                break;
+
+            case Item.IC_MISC:
+                switch (o.usItem)
+                {
+                    case (ushort)ITEMDEFINE.ACTION_ITEM:
+                    case (ushort)ITEMDEFINE.SWITCH:
+                        writer.Write(o.bBombStatus);
+                        writer.Write(o.bDetonatorType);
+                        writer.Write(o.usBombItem);
+                        writer.Write(o.bDelay);
+                        writer.Write(o.ubBombOwner);
+                        writer.Write(o.bActionValue);
+                        writer.Write(o.ubTolerance);
+                        writer.Write(new byte[4]);
+                        break;
+
+                    case (ushort)ITEMDEFINE.OWNERSHIP:
+                        writer.Write(o.ubOwnerProfile);
+                        writer.Write(o.ubOwnerCivGroup);
+                        writer.Write(new byte[10]);
+                        break;
+
+                    default:
+                        writer.WriteSbytes(o.bStatus, ObjectType.MAX_OBJECTS_PER_SLOT);
+                        writer.Write(new byte[4]);
+                        break;
+                }
+                break;
+
+            default:
+                writer.WriteSbytes(o.bStatus, ObjectType.MAX_OBJECTS_PER_SLOT);
+                writer.Write(new byte[4]);
+                break;
+        }
+
+        writer.WriteUshorts(o.usAttachItem, ObjectType.MAX_ATTACHMENTS);
+        writer.WriteSbytes(o.bAttachStatus, ObjectType.MAX_ATTACHMENTS);
+
+        writer.Write(o.fFlags);
+        writer.Write(o.ubMission);
+        writer.Write(o.bTrap);
+        writer.Write(o.ubImprintID);
+        writer.Write(o.ubWeight);
+        writer.Write(o.fUsed);
+        writer.Write(new byte[2]);
+
+        if (ms.Position != 36)
+            throw new InvalidOperationException($"Serialized size mismatch: {ms.Position} bytes");
+
+        return ms.ToArray();
+    }
+
     public byte[] Serialize()
     {
         CheckSum = Encryption.MercChecksum(this);
@@ -1582,6 +1674,14 @@ public class Soldier : INotifyPropertyChanged
                 default:
                     throw new NotSupportedException($"Unsupported type: {offset.Value.Type}");
             }
+        }
+
+        // inv
+        foreach (var i in inv)
+        {
+            var iBytes = InjectObject(i);
+            writer.BaseStream.Seek(i.Offset.Start, SeekOrigin.Begin);
+            writer.Write(iBytes);
         }
 
         return Data;

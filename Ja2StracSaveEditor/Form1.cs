@@ -3,15 +3,13 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Ja2StracSaveEditorLib;
+using Ja2StracSaveEditorLib.Managers;
 using Newtonsoft.Json;
 
 namespace Ja2StracSaveEditor;
 
 public partial class Form1 : Form
 {
-    private const string SettingsFilename = @"settings.json";
-
-    private SettingsModel _settings;
     private SaveGame _saveGame;
     private Soldier _soldier;
 
@@ -19,18 +17,21 @@ public partial class Form1 : Form
     {
         InitializeComponent();
         LoadSettings();
+
+        if (!Directory.Exists(Program.ImageCacheDir))
+            Directory.CreateDirectory(Program.ImageCacheDir);
     }
 
     private void LoadSettings()
     {
-        if (!File.Exists(SettingsFilename))
+        if (!File.Exists(Program.SettingsFilename))
         {
-            _settings = new SettingsModel();
+            Program.Settings = new SettingsModel();
             return;
         }
 
-        var content = File.ReadAllText(SettingsFilename, new UTF8Encoding(false));
-        _settings = JsonConvert.DeserializeObject<SettingsModel>(content);
+        var content = File.ReadAllText(Program.SettingsFilename, new UTF8Encoding(false));
+        Program.Settings = JsonConvert.DeserializeObject<SettingsModel>(content);
     }
 
     private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -40,10 +41,10 @@ public partial class Form1 : Form
 
     private void SettingsBtn_Click(object sender, EventArgs e)
     {
-        var settingsForm = new SettingsForm(_settings);
+        var settingsForm = new SettingsForm(Program.Settings);
         if (DialogResult.OK != settingsForm.ShowDialog()) return;
-        var content = JsonConvert.SerializeObject(_settings, Formatting.Indented);
-        File.WriteAllText(SettingsFilename, content, new UTF8Encoding(false));
+        var content = JsonConvert.SerializeObject(Program.Settings, Formatting.Indented);
+        File.WriteAllText(Program.SettingsFilename, content, new UTF8Encoding(false));
     }
 
     private void OpenBtn_Click(object sender, EventArgs e)
@@ -60,7 +61,7 @@ public partial class Form1 : Form
 
         try
         {
-            _saveGame = new SaveGame(dialog.FileName, _settings.Ja2StracPath);
+            _saveGame = new SaveGame(dialog.FileName, Program.Settings.Ja2StracPath);
             _saveGame.Load();
 
             SoldiersLst.DisplayMember = nameof(Soldier.name);
@@ -273,12 +274,172 @@ public partial class Form1 : Form
         try
         {
             if (_soldier?.inv == null) return;
-            ;
+
+            foreach (InvSlotPos slot in Enum.GetValues(typeof(InvSlotPos)))
+            {
+                if (slot == InvSlotPos.NUM_INV_SLOTS) continue;
+                var obj = _soldier.inv[(int)slot];
+
+                var invSlot = inventoryControl1.InventorySlots[slot];
+
+                invSlot.Item = obj.Item;
+                invSlot.ButtonText = GetObjectName(obj);
+                invSlot.ButtonImage = Exts.GetItemImageFilename(obj.Item);
+                invSlot.AsteriskVisible = HasAttachments(obj);
+                invSlot.Status = GetStatus(obj);
+                invSlot.BulletsCount = GetShotsLeft(obj);
+                invSlot.Count = GetCnt(obj);
+
+                invSlot.Button.Click += (_, _) =>
+                {
+                    var allItems = _saveGame?.ItemDataManager?.Items?
+                        .OrderBy(o => o.itemIndex)
+                        .ToList();
+
+                    if (slot is InvSlotPos.HELMETPOS or InvSlotPos.VESTPOS or InvSlotPos.LEGPOS)
+                    {
+                        // ReSharper disable once AssignNullToNotNullAttribute
+                        allItems = allItems
+                            .Where(w => (w.usItemClass == Item.IC_ARMOUR &&
+                            (w.bAttachment == null || !w.bAttachment.Value)
+                                ) || w.itemIndex == obj.usItem)
+                            .ToList();
+                    }
+
+                    var form = new ItemsForm(allItems)
+                    {
+                        Item = obj.Item
+                    };
+
+                    if (DialogResult.OK == form.ShowDialog() && form.Item != null)
+                    {
+                        var newObj = new ObjectType
+                        {
+                            usItem = (ushort)form.Item.itemIndex,
+                            usItemCheckSum = (ushort)form.Item.itemIndex,
+                            Item = form.Item,
+                            ubNumberOfObjects = Convert.ToByte(form.Item.ubPerPocket <= 0 ? 1 : form.Item.ubPerPocket),
+                            bGunStatus = 100,
+                            ubGunShotsLeft = Convert.ToByte(form.Item.ubMagSize ?? 0), //obj.ubGunShotsLeft,
+                            bStatus = FillStatus(form.Item.ubPerPocket <= 0 ? 1 : form.Item.ubPerPocket),
+
+                            ubGunAmmoType = obj.ubGunAmmoType,
+                            usGunAmmoItem = obj.usGunAmmoItem,
+                            bGunAmmoStatus = obj.bGunAmmoStatus,
+
+                            ubShotsLeft = obj.ubShotsLeft,
+                            
+                            bMoneyStatus = obj.bMoneyStatus,
+                            uiMoneyAmount = obj.uiMoneyAmount,
+                            padding = obj.padding,
+                            bBombStatus = obj.bBombStatus,
+                            bDetonatorType = obj.bDetonatorType,
+                            usBombItem = obj.usBombItem,
+                            bDelay = obj.bDelay,
+                            ubBombOwner = obj.ubBombOwner,
+                            bActionValue = obj.bActionValue,
+                            ubTolerance = obj.ubTolerance,
+                            bKeyStatus = obj.bKeyStatus,
+                            ubKeyID = obj.ubKeyID,
+                            ubOwnerProfile = obj.ubOwnerProfile,
+                            ubOwnerCivGroup = obj.ubOwnerCivGroup,
+
+                            usAttachItem = new ushort[ObjectType.MAX_ATTACHMENTS],
+                            bAttachStatus = new sbyte[ObjectType.MAX_ATTACHMENTS],
+
+                            fFlags = 0,
+                            ubMission = 0,
+                            bTrap = 0,
+                            ubImprintID = 200,
+                            ubWeight = 1, //1g
+                            fUsed = 0,
+
+                            Offset = obj.Offset,
+                        };
+
+                        _soldier.inv[(int)slot] = newObj;
+
+                        invSlot.Item = newObj.Item;
+                        invSlot.ButtonText = GetObjectName(newObj);
+                        invSlot.ButtonImage = Exts.GetItemImageFilename(newObj.Item);
+                        invSlot.AsteriskVisible = HasAttachments(newObj);
+                        invSlot.Status = GetStatus(newObj);
+                        invSlot.BulletsCount = GetShotsLeft(newObj);
+                        invSlot.Count = GetCnt(newObj);
+
+                        obj = newObj;
+                    }
+                };
+            }
         }
         catch (Exception exc)
         {
             MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
+    }
+
+    private sbyte[] FillStatus(int numItems)
+    {
+        var result = new sbyte[ObjectType.MAX_OBJECTS_PER_SLOT];
+        for (var i = 0; i < numItems && i < ObjectType.MAX_OBJECTS_PER_SLOT; i++)
+        {
+            result[i] = 100;
+        }
+
+        return result;
+    }
+
+    private int GetCnt(ObjectType obj)
+    {
+        return obj?.ubNumberOfObjects ?? 0;
+    }
+
+    private int GetShotsLeft(ObjectType obj)
+    {
+        if (obj?.Item == null) return -1;
+        if (obj.Item.usItemClass != Item.IC_GUN) return -1;
+
+        return obj.ubGunShotsLeft;
+    }
+
+    private int GetStatus(ObjectType obj)
+    {
+        if (obj?.Item == null) return 0;
+
+        switch (obj.Item.usItemClass)
+        {
+            case Item.IC_GUN:
+                return obj.bGunStatus;
+            case Item.IC_MONEY:
+                return obj.bMoneyStatus;
+            default:
+                return FindStatus(obj.bStatus);
+        }
+    }
+
+    private int FindStatus(sbyte[] array)
+    {
+        return array?.FirstOrDefault(f => f != 0) ?? 0;
+    }
+
+    private bool HasAttachments(ObjectType obj)
+    {
+        return obj?.usAttachItem != null && obj.usAttachItem.Any(a => a ! > 0);
+    }
+
+    private string GetObjectName(ObjectType obj)
+    {
+        if (obj == null) return string.Empty;
+        if (obj.Item != null && !string.IsNullOrWhiteSpace(obj.Item.internalName))
+        {
+            if (obj.Item.internalName.Equals("nothing", StringComparison.InvariantCultureIgnoreCase) ||
+                obj.Item.internalName.Equals("none", StringComparison.InvariantCultureIgnoreCase))
+                return string.Empty;
+
+            return obj.Item.internalName;
+        }
+
+        return $"#{obj.usItem}";
     }
 }

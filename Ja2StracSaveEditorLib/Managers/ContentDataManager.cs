@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.ComponentModel;
 
 // ReSharper disable InconsistentNaming
 
@@ -13,7 +14,7 @@ public class TileGraphic
 public class Graphic
 {
     public string path { get; set; }
-    public int subImageIndex { get; set; }
+    public int? subImageIndex { get; set; }
 }
 
 public class InventoryGraphics
@@ -22,8 +23,12 @@ public class InventoryGraphics
     public Graphic big { get; set; }
 }
 
-public class Item
+public class Item : INotifyPropertyChanged
 {
+#pragma warning disable CS0067 // The event is never used
+    public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore CS0067
+
     // SUBTYPES
     public const int IC_NONE = 0x00000001;
     public const int IC_GUN = 0x00000002;
@@ -89,6 +94,8 @@ public class Item
     public bool? bNotBuyable { get; set; }
     public bool? bNotEditor { get; set; }
     public bool? bTwoHanded { get; set; }
+    public bool? bAttachment { get; set; }
+    public bool? bElectronic { get; set; }
 
     public bool? attachment_Silencer { get; set; }
     public bool? attachment_LaserScope { get; set; }
@@ -101,11 +108,6 @@ public class Item
 
     public InventoryGraphics inventoryGraphics { get; set; }
     public TileGraphic tileGraphic { get; set; }
-
-    internal int GetItemClass()
-    {
-        return usItemClass;
-    }
 }
 
 public class ContentDataManager

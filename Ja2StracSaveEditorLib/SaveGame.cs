@@ -29,7 +29,7 @@ public class SaveGame : IDisposable
     private int _encryptionSet;
     private uint _mercProfilesOffset;
 
-    private readonly ContentDataManager _itemDataManager;
+    public readonly ContentDataManager ItemDataManager;
 
     public List<MercProfile> MercProfiles { get; } = new List<MercProfile>();
     public List<Soldier> Soldiers { get; } = new List<Soldier>();
@@ -42,7 +42,7 @@ public class SaveGame : IDisposable
         _fileReader = new BinaryReader(_fileStream);
         _fileWriter = new BinaryWriter(_fileStream);
 
-        _itemDataManager = ContentDataManager.LoadFromFile(new Dictionary<string, int?>
+        ItemDataManager = ContentDataManager.LoadFromFile(new Dictionary<string, int?>
         {
             { Path.Combine(pathToStracciatella, _pathToItemsJson), null},
             { Path.Combine(pathToStracciatella, _pathToMagazinesJson), Item.IC_AMMO },
@@ -119,7 +119,7 @@ public class SaveGame : IDisposable
             var soldierBytes = Encryption.NewJa2EncryptedFileRead(_encryptionSet, encryptedSoldierBytes, Soldier.SOLDIER_SIZE);
 
             offset.End = _fileStream.Position;
-            var soldier = Soldier.Deserialize(soldierBytes, _itemDataManager, offset);
+            var soldier = Soldier.Deserialize(soldierBytes, ItemDataManager, offset);
 
             uint uiNumOfNodes = _fileReader.ReadUInt32();
             var uiNumOfNodesSkipBytes = 20 * uiNumOfNodes;
