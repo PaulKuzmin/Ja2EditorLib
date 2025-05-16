@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
 using Ja2StracSaveEditorLib;
 using Ja2StracSaveEditorLib.Managers;
 using Newtonsoft.Json;
@@ -522,9 +521,28 @@ public partial class Form1 : Form
                 if (i.Item.usItemClass != Item.IC_GUN && i.Item.usItemClass != Item.IC_AMMO) continue;
 
                 var ubPerPocket = Convert.ToByte(i.Item.ubPerPocket <= 0 ? 1 : i.Item.ubPerPocket);
-                i.ubGunShotsLeft = Convert.ToByte(i.Item.ubMagSize ?? 0);
-                i.ubShotsLeft = FillShotsLeft(Convert.ToByte(i.Item.ubMagSize), ubPerPocket);
                 i.bGunAmmoStatus = 100;
+
+                if (i.Item.usItemClass == Item.IC_GUN)
+                {
+                    i.ubGunShotsLeft = Convert.ToByte(i.Item.ubMagSize ?? 0);
+                    i.ubShotsLeft = FillShotsLeft(Convert.ToByte(i.Item.ubMagSize), ubPerPocket);
+                }
+                else
+                {
+                    var item = _saveGame.ItemDataManager.Items.FirstOrDefault(f => f.itemIndex == i.usItem);
+                    if (item is { capacity: > 0 })
+                    {
+                        i.ubGunShotsLeft = Convert.ToByte(item.capacity);
+                        i.ubShotsLeft = FillShotsLeft(Convert.ToByte(item.capacity), ubPerPocket);
+                    }
+                    else
+                    {
+                        i.ubGunShotsLeft = 30;
+                        i.ubShotsLeft = FillShotsLeft(30, ubPerPocket);
+                    }
+                }
+
 
                 try
                 {
