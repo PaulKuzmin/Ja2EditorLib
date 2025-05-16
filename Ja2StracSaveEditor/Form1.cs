@@ -640,7 +640,7 @@ public partial class Form1 : Form
         if (weaponSlot?.Item == null || string.IsNullOrWhiteSpace(weaponSlot.Item.calibre)) return;
 
         var ammo = _saveGame.ItemDataManager.Items
-            .Where(w => w.calibre == weaponSlot.Item.calibre)
+            .Where(w => w.calibre == weaponSlot.Item.calibre && w.usItemClass == Item.IC_AMMO)
             .MaxBy(w => w.ubCoolness);
         if (ammo == null) return;
 
