@@ -39,11 +39,15 @@
             tabPage1 = new TabPage();
             tabPage2 = new TabPage();
             inventoryControl1 = new InventoryControl();
+            panel3 = new Panel();
+            ReloadAllBtn = new Button();
+            RepearAllBtn = new Button();
             SoldiersLst = new ListBox();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             tabControl1.SuspendLayout();
             tabPage2.SuspendLayout();
+            panel3.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -106,7 +110,7 @@
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(0, 47);
             panel2.Name = "panel2";
-            panel2.Size = new Size(1406, 595);
+            panel2.Size = new Size(1406, 640);
             panel2.TabIndex = 1;
             // 
             // tabControl1
@@ -117,7 +121,7 @@
             tabControl1.Location = new Point(134, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(1272, 595);
+            tabControl1.Size = new Size(1272, 640);
             tabControl1.TabIndex = 1;
             // 
             // tabPage1
@@ -125,7 +129,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(620, 511);
+            tabPage1.Size = new Size(1264, 612);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Attributes & Stats";
             tabPage1.UseVisualStyleBackColor = true;
@@ -133,10 +137,11 @@
             // tabPage2
             // 
             tabPage2.Controls.Add(inventoryControl1);
+            tabPage2.Controls.Add(panel3);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(1264, 567);
+            tabPage2.Size = new Size(1264, 612);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Inventory";
             tabPage2.UseVisualStyleBackColor = true;
@@ -145,10 +150,40 @@
             // 
             inventoryControl1.BackgroundImage = (Image)resources.GetObject("inventoryControl1.BackgroundImage");
             inventoryControl1.BackgroundImageLayout = ImageLayout.Zoom;
-            inventoryControl1.Location = new Point(3, 3);
+            inventoryControl1.Location = new Point(3, 54);
             inventoryControl1.Name = "inventoryControl1";
             inventoryControl1.Size = new Size(1264, 552);
             inventoryControl1.TabIndex = 0;
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(ReloadAllBtn);
+            panel3.Controls.Add(RepearAllBtn);
+            panel3.Dock = DockStyle.Top;
+            panel3.Location = new Point(3, 3);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(1258, 48);
+            panel3.TabIndex = 1;
+            // 
+            // ReloadAllBtn
+            // 
+            ReloadAllBtn.Location = new Point(92, 11);
+            ReloadAllBtn.Name = "ReloadAllBtn";
+            ReloadAllBtn.Size = new Size(75, 23);
+            ReloadAllBtn.TabIndex = 1;
+            ReloadAllBtn.Text = "Reload All";
+            ReloadAllBtn.UseVisualStyleBackColor = true;
+            ReloadAllBtn.Click += ReloadAllBtn_Click;
+            // 
+            // RepearAllBtn
+            // 
+            RepearAllBtn.Location = new Point(10, 11);
+            RepearAllBtn.Name = "RepearAllBtn";
+            RepearAllBtn.Size = new Size(75, 23);
+            RepearAllBtn.TabIndex = 0;
+            RepearAllBtn.Text = "Repear All";
+            RepearAllBtn.UseVisualStyleBackColor = true;
+            RepearAllBtn.Click += RepearAllBtn_Click;
             // 
             // SoldiersLst
             // 
@@ -157,7 +192,7 @@
             SoldiersLst.ItemHeight = 15;
             SoldiersLst.Location = new Point(0, 0);
             SoldiersLst.Name = "SoldiersLst";
-            SoldiersLst.Size = new Size(134, 595);
+            SoldiersLst.Size = new Size(134, 640);
             SoldiersLst.TabIndex = 0;
             SoldiersLst.SelectedIndexChanged += SoldiersLst_SelectedIndexChanged;
             // 
@@ -165,7 +200,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1406, 642);
+            ClientSize = new Size(1406, 687);
             Controls.Add(panel2);
             Controls.Add(panel1);
             Name = "Form1";
@@ -175,6 +210,7 @@
             panel2.ResumeLayout(false);
             tabControl1.ResumeLayout(false);
             tabPage2.ResumeLayout(false);
+            panel3.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -191,5 +227,8 @@
         private Button OpenBtn;
         private Button SettingsBtn;
         private InventoryControl inventoryControl1;
+        private Panel panel3;
+        private Button ReloadAllBtn;
+        private Button RepearAllBtn;
     }
 }

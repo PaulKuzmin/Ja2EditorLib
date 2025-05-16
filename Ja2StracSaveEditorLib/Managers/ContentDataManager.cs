@@ -23,6 +23,23 @@ public class InventoryGraphics
     public Graphic big { get; set; }
 }
 
+public enum AMMO_TYPE
+{
+    AMMO_REGULAR = 0,
+    AMMO_HP,
+    AMMO_AP,
+    AMMO_SUPER_AP,
+    AMMO_BUCKSHOT,
+    AMMO_FLECHETTE,
+    AMMO_GRENADE,
+    AMMO_MONSTER,
+    AMMO_KNIFE,
+    AMMO_HE,
+    AMMO_HEAT,
+    AMMO_SLEEP_DART,
+    AMMO_FLAME,
+}
+
 public class Item : INotifyPropertyChanged
 {
 #pragma warning disable CS0067 // The event is never used
@@ -108,6 +125,14 @@ public class Item : INotifyPropertyChanged
 
     public InventoryGraphics inventoryGraphics { get; set; }
     public TileGraphic tileGraphic { get; set; }
+
+    public byte AmmoTypeByte()
+    {
+        if (!Enum.TryParse<AMMO_TYPE>(ammoType, true, out var val))
+            return 0;
+
+        return (byte)val;
+    }
 }
 
 public class ContentDataManager

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 using Ja2StracSaveEditorLib;
 using Ja2StracSaveEditorLib.Managers;
 using Newtonsoft.Json;
@@ -301,7 +302,7 @@ public partial class Form1 : Form
                         // ReSharper disable once AssignNullToNotNullAttribute
                         allItems = allItems
                             .Where(w => (w.usItemClass == Item.IC_ARMOUR &&
-                            (w.bAttachment == null || !w.bAttachment.Value)
+                                         (w.bAttachment == null || !w.bAttachment.Value)
                                 ) || w.itemIndex == obj.usItem)
                             .ToList();
                     }
@@ -313,48 +314,59 @@ public partial class Form1 : Form
 
                     if (DialogResult.OK == form.ShowDialog() && form.Item != null)
                     {
+                        //
+
+                        ushort gunAmmoItem = 0;
+                        if (!string.IsNullOrWhiteSpace(form.Item.calibre) && allItems != null)
+                        {
+                            var ammo = allItems
+                                .Where(w => w.calibre == form.Item.calibre && w.usItemClass == Item.IC_AMMO)
+                                .MaxBy(o => o.ubCoolness);
+                            if (ammo != null)
+                            {
+                                gunAmmoItem = Convert.ToUInt16(ammo.itemIndex);
+                            }
+                        }
+
+                        var ubPerPocket = Convert.ToByte(form.Item.ubPerPocket <= 0 ? 1 : form.Item.ubPerPocket);
                         var newObj = new ObjectType
                         {
                             usItem = (ushort)form.Item.itemIndex,
                             usItemCheckSum = (ushort)form.Item.itemIndex,
                             Item = form.Item,
-                            ubNumberOfObjects = Convert.ToByte(form.Item.ubPerPocket <= 0 ? 1 : form.Item.ubPerPocket),
+                            ubNumberOfObjects = ubPerPocket,
                             bGunStatus = 100,
                             ubGunShotsLeft = Convert.ToByte(form.Item.ubMagSize ?? 0), //obj.ubGunShotsLeft,
-                            bStatus = FillStatus(form.Item.ubPerPocket <= 0 ? 1 : form.Item.ubPerPocket),
-
-                            ubGunAmmoType = obj.ubGunAmmoType,
-                            usGunAmmoItem = obj.usGunAmmoItem,
-                            bGunAmmoStatus = obj.bGunAmmoStatus,
-
-                            ubShotsLeft = obj.ubShotsLeft,
-                            
-                            bMoneyStatus = obj.bMoneyStatus,
-                            uiMoneyAmount = obj.uiMoneyAmount,
-                            padding = obj.padding,
-                            bBombStatus = obj.bBombStatus,
-                            bDetonatorType = obj.bDetonatorType,
-                            usBombItem = obj.usBombItem,
-                            bDelay = obj.bDelay,
-                            ubBombOwner = obj.ubBombOwner,
-                            bActionValue = obj.bActionValue,
-                            ubTolerance = obj.ubTolerance,
-                            bKeyStatus = obj.bKeyStatus,
-                            ubKeyID = obj.ubKeyID,
-                            ubOwnerProfile = obj.ubOwnerProfile,
-                            ubOwnerCivGroup = obj.ubOwnerCivGroup,
-
+                            bStatus = FillStatus(ubPerPocket),
+                            ubShotsLeft =
+                                FillShotsLeft(Convert.ToByte(form.Item.ubMagSize), ubPerPocket), //obj.ubShotsLeft,
                             usAttachItem = new ushort[ObjectType.MAX_ATTACHMENTS],
                             bAttachStatus = new sbyte[ObjectType.MAX_ATTACHMENTS],
-
                             fFlags = 0,
                             ubMission = 0,
                             bTrap = 0,
                             ubImprintID = 200,
                             ubWeight = 1, //1g
                             fUsed = 0,
-
                             Offset = obj.Offset,
+                            uiMoneyAmount = uint.MaxValue,
+                            bMoneyStatus = 100,
+                            padding = new sbyte[4],
+                            bBombStatus = 100,
+                            bGunAmmoStatus = 100,
+                            bDetonatorType = 0,
+                            bDelay = 0,
+                            ubOwnerCivGroup = 0,
+                            ubBombOwner = 0, //obj.ubBombOwner,
+                            bActionValue = 0, //obj.ubBombOwner,
+                            ubTolerance = 0, //obj.ubBombOwner,
+                            bKeyStatus = new sbyte[6], //obj.ubBombOwner,
+                            ubKeyID = 0, //obj.ubBombOwner,
+                            ubOwnerProfile = 0, //obj.ubBombOwner,
+
+                            ubGunAmmoType = form.Item.AmmoTypeByte(),
+                            usGunAmmoItem = gunAmmoItem,
+                            usBombItem = 0, //obj.usBombItem,
                         };
 
                         _soldier.inv[(int)slot] = newObj;
@@ -385,6 +397,17 @@ public partial class Form1 : Form
         for (var i = 0; i < numItems && i < ObjectType.MAX_OBJECTS_PER_SLOT; i++)
         {
             result[i] = 100;
+        }
+
+        return result;
+    }
+
+    private byte[] FillShotsLeft(byte magSize, int n)
+    {
+        var result = new byte[ObjectType.MAX_OBJECTS_PER_SLOT];
+        for (var i = 0; i < n && i < ObjectType.MAX_OBJECTS_PER_SLOT; i++)
+        {
+            result[i] = magSize;
         }
 
         return result;
@@ -425,7 +448,7 @@ public partial class Form1 : Form
 
     private bool HasAttachments(ObjectType obj)
     {
-        return obj?.usAttachItem != null && obj.usAttachItem.Any(a => a ! > 0);
+        return obj?.usAttachItem != null && obj.usAttachItem.Any(a => a! > 0);
     }
 
     private string GetObjectName(ObjectType obj)
@@ -441,5 +464,84 @@ public partial class Form1 : Form
         }
 
         return $"#{obj.usItem}";
+    }
+
+    private sbyte[] RepearStatus(sbyte[] s, int l)
+    {
+        s ??= new sbyte[l];
+        for (var i = 0; i < l && i < s.Length; i++)
+        {
+            s[i] = 100;
+        }
+
+        return s;
+    }
+
+    private void RepearAllBtn_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            if (_soldier?.inv == null) return;
+            for (var index = 0; index < _soldier.inv.Length; index++)
+            {
+                var i = _soldier.inv[index];
+                i.bGunStatus = 100;
+                i.bStatus = RepearStatus(i.bStatus, ObjectType.MAX_OBJECTS_PER_SLOT);
+                i.bAttachStatus = RepearStatus(i.bStatus, ObjectType.MAX_ATTACHMENTS);
+                i.bMoneyStatus = 100;
+                i.bBombStatus = 100;
+                i.bGunAmmoStatus = 100;
+
+                try
+                {
+                    var slot = (InvSlotPos)index;
+                    var invSlot = inventoryControl1.InventorySlots[slot];
+                    invSlot.Status = GetStatus(i);
+                    // ReSharper disable once EmptyGeneralCatchClause
+                } catch {}
+            }
+        }
+
+        catch (Exception exc)
+        {
+            MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
+    }
+
+    private void ReloadAllBtn_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            if (_soldier?.inv == null) return;
+            for (var index = 0; index < _soldier.inv.Length; index++)
+            {
+                var i = _soldier.inv[index];
+                if (i.Item == null) continue;
+
+                if (i.Item.usItemClass != Item.IC_GUN && i.Item.usItemClass != Item.IC_AMMO) continue;
+
+                var ubPerPocket = Convert.ToByte(i.Item.ubPerPocket <= 0 ? 1 : i.Item.ubPerPocket);
+                i.ubGunShotsLeft = Convert.ToByte(i.Item.ubMagSize ?? 0);
+                i.ubShotsLeft = FillShotsLeft(Convert.ToByte(i.Item.ubMagSize), ubPerPocket);
+                i.bGunAmmoStatus = 100;
+
+                try
+                {
+                    var slot = (InvSlotPos)index;
+                    var invSlot = inventoryControl1.InventorySlots[slot];
+                    invSlot.BulletsCount = GetShotsLeft(i);
+                    invSlot.Count = GetCnt(i);
+                }
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch { }
+            }
+        }
+
+        catch (Exception exc)
+        {
+            MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
     }
 }
