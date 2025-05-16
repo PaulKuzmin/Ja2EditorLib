@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
 using Ja2StracSaveEditorLib;
 using Ja2StracSaveEditorLib.Managers;
 using Newtonsoft.Json;
