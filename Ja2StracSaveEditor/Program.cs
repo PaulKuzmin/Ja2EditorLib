@@ -1,23 +1,22 @@
-namespace Ja2StracSaveEditor
+namespace Ja2StracSaveEditor;
+
+internal static class Program
 {
-    internal static class Program
+    internal const string SettingsFilename = @"settings.json";
+    internal const string ImageCacheDir = @"invcache";
+    internal const string ImageNotFound = @"notfound.png";
+
+    internal static SettingsModel Settings;
+
+    /// <summary>
+    ///  The main entry point for the application.
+    /// </summary>
+    [STAThread]
+    static void Main()
     {
-        internal const string SettingsFilename = @"settings.json";
-        internal const string ImageCacheDir = @"invcache";
-        internal const string ImageNotFound = @"notfound.png";
-
-        internal static SettingsModel Settings;
-
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
-        }
+        // To customize application configuration such as set high DPI settings or default font,
+        // see https://aka.ms/applicationconfiguration.
+        ApplicationConfiguration.Initialize();
+        Application.Run(new Form1());
     }
 }

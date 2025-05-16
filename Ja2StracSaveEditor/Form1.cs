@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 using Ja2StracSaveEditorLib;
 using Ja2StracSaveEditorLib.Managers;
 using Newtonsoft.Json;
@@ -292,28 +293,30 @@ public partial class Form1 : Form
 
                 invSlot.Button.Click += (_, _) =>
                 {
-                    var allItems = _saveGame?.ItemDataManager?.Items?
-                        .OrderBy(o => o.itemIndex)
-                        .ToList();
-
-                    if (slot is InvSlotPos.HELMETPOS or InvSlotPos.VESTPOS or InvSlotPos.LEGPOS)
+                    try
                     {
-                        // ReSharper disable once AssignNullToNotNullAttribute
-                        allItems = allItems
-                            .Where(w => (w.usItemClass == Item.IC_ARMOUR &&
-                                         (w.bAttachment == null || !w.bAttachment.Value)
-                                ) || w.itemIndex == obj.usItem)
+                        var allItems = _saveGame?.ItemDataManager?.Items?
+                            .OrderBy(o => o.itemIndex)
                             .ToList();
-                    }
 
-                    var form = new ItemsForm(allItems)
-                    {
-                        Item = obj.Item
-                    };
+                        if (slot is InvSlotPos.HELMETPOS or InvSlotPos.VESTPOS or InvSlotPos.LEGPOS)
+                        {
+                            // ReSharper disable once AssignNullToNotNullAttribute
+                            allItems = allItems
+                                .Where(w => (w.usItemClass == Item.IC_ARMOUR &&
+                                             (w.bAttachment == null || !w.bAttachment.Value)
+                                    ) || w.itemIndex == obj.usItem)
+                                .ToList();
+                        }
 
-                    if (DialogResult.OK == form.ShowDialog() && form.Item != null)
-                    {
-                        //
+                        var form = new ItemsForm(allItems)
+                        {
+                            Item = obj.Item
+                        };
+
+                        inventoryControl1.Enabled = false;
+
+                        if (DialogResult.OK != form.ShowDialog() || form.Item == null) return;
 
                         ushort gunAmmoItem = 0;
                         if (!string.IsNullOrWhiteSpace(form.Item.calibre) && allItems != null)
@@ -368,6 +371,28 @@ public partial class Form1 : Form
                             usBombItem = 0, //obj.usBombItem,
                         };
 
+                        //
+                        if (newObj.Item.usItemClass == Item.IC_GUN)
+                        {
+                            newObj.ubGunShotsLeft = Convert.ToByte(newObj.Item.ubMagSize ?? 0);
+                            newObj.ubShotsLeft = FillShotsLeft(Convert.ToByte(newObj.Item.ubMagSize), ubPerPocket);
+                        }
+                        else
+                        {
+                            var item = _saveGame?.ItemDataManager?.Items?.FirstOrDefault(f => f.itemIndex == newObj.usItem);
+                            if (item is { capacity: > 0 })
+                            {
+                                newObj.ubGunShotsLeft = Convert.ToByte(item.capacity);
+                                newObj.ubShotsLeft = FillShotsLeft(Convert.ToByte(item.capacity), ubPerPocket);
+                            }
+                            else
+                            {
+                                newObj.ubGunShotsLeft = 30;
+                                newObj.ubShotsLeft = FillShotsLeft(30, ubPerPocket);
+                            }
+                        }
+                        //
+
                         _soldier.inv[(int)slot] = newObj;
 
                         invSlot.Item = newObj.Item;
@@ -379,6 +404,48 @@ public partial class Form1 : Form
                         invSlot.Count = GetCnt(newObj);
 
                         obj = newObj;
+                    }
+                    catch (Exception exc)
+                    {
+                        MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        inventoryControl1.Enabled = true;
+                    }
+                };
+
+                invSlot.Button.MouseUp += (_, args) =>
+                {
+                    if (args.Button != MouseButtons.Right) return;
+
+                    try
+                    {
+                        inventoryControl1.Enabled = false;
+
+                        var attachObj = _soldier.inv[(int)slot];
+
+                        var attachableItems = _saveGame.ItemDataManager.Items
+                            .Where(w => w.bAttachment != null && w.bAttachment.Value)
+                            .ToList();
+
+                        var attForm = new AttachForm(attachableItems, attachObj.usAttachItem, attachObj.bAttachStatus);
+                        if (DialogResult.OK != attForm.ShowDialog()) return;
+
+                        attachObj.usAttachItem = attForm.Attachments;
+                        attachObj.bAttachStatus = attForm.Status;
+
+                        invSlot.AsteriskVisible = HasAttachments(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show($@"{e.Message}\r\n{e.StackTrace}", @"Error", MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        inventoryControl1.Enabled = true;
                     }
                 };
             }
@@ -496,8 +563,11 @@ public partial class Form1 : Form
                     var slot = (InvSlotPos)index;
                     var invSlot = inventoryControl1.InventorySlots[slot];
                     invSlot.Status = GetStatus(i);
-                    // ReSharper disable once EmptyGeneralCatchClause
-                } catch {}
+                }
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch
+                {
+                }
             }
         }
 
@@ -543,7 +613,6 @@ public partial class Form1 : Form
                     }
                 }
 
-
                 try
                 {
                     var slot = (InvSlotPos)index;
@@ -552,7 +621,9 @@ public partial class Form1 : Form
                     invSlot.Count = GetCnt(i);
                 }
                 // ReSharper disable once EmptyGeneralCatchClause
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -560,6 +631,105 @@ public partial class Form1 : Form
         {
             MessageBox.Show($@"{exc.Message}\r\n{exc.StackTrace}", @"Error", MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
+        }
+    }
+
+    private void GetAmmoBtn_Click(object sender, EventArgs e)
+    {
+        if (_saveGame == null) return;
+        var weaponSlot = inventoryControl1.InventorySlots[InvSlotPos.HANDPOS];
+        if (weaponSlot?.Item == null || string.IsNullOrWhiteSpace(weaponSlot.Item.calibre)) return;
+
+        var ammo = _saveGame.ItemDataManager.Items
+            .Where(w => w.calibre == weaponSlot.Item.calibre)
+            .MaxBy(w => w.ubCoolness);
+        if (ammo == null) return;
+
+        var checkSlots = new HashSet<InvSlotPos>
+        {
+            InvSlotPos.BIGPOCK1POS,
+            InvSlotPos.BIGPOCK2POS,
+            InvSlotPos.BIGPOCK3POS,
+            InvSlotPos.BIGPOCK4POS,
+
+            InvSlotPos.SMALLPOCK1POS,
+            InvSlotPos.SMALLPOCK2POS,
+            InvSlotPos.SMALLPOCK3POS,
+            InvSlotPos.SMALLPOCK4POS,
+            InvSlotPos.SMALLPOCK5POS,
+            InvSlotPos.SMALLPOCK6POS,
+            InvSlotPos.SMALLPOCK7POS,
+            InvSlotPos.SMALLPOCK8POS
+        };
+
+        foreach (var slot in checkSlots)
+        {
+            var iSlot = _soldier.inv[(int)slot];
+            if (iSlot == null || iSlot.usItem > 0) continue;
+
+            var ubPerPocket = Convert.ToByte(ammo.ubPerPocket <= 0 ? 1 : ammo.ubPerPocket);
+            var newObj = new ObjectType
+            {
+                usItem = (ushort)ammo.itemIndex,
+                usItemCheckSum = (ushort)ammo.itemIndex,
+                Item = ammo,
+                ubNumberOfObjects = ubPerPocket,
+                bGunStatus = 100,
+                ubGunShotsLeft = Convert.ToByte(ammo.ubMagSize ?? 0), //obj.ubGunShotsLeft,
+                bStatus = FillStatus(ubPerPocket),
+                ubShotsLeft =
+                    FillShotsLeft(Convert.ToByte(ammo.ubMagSize), ubPerPocket), //obj.ubShotsLeft,
+                usAttachItem = new ushort[ObjectType.MAX_ATTACHMENTS],
+                bAttachStatus = new sbyte[ObjectType.MAX_ATTACHMENTS],
+                fFlags = 0,
+                ubMission = 0,
+                bTrap = 0,
+                ubImprintID = 200,
+                ubWeight = 1, //1g
+                fUsed = 0,
+                Offset = iSlot.Offset,
+                uiMoneyAmount = uint.MaxValue,
+                bMoneyStatus = 100,
+                padding = new sbyte[4],
+                bBombStatus = 100,
+                bGunAmmoStatus = 100,
+                bDetonatorType = 0,
+                bDelay = 0,
+                ubOwnerCivGroup = 0,
+                ubBombOwner = 0, //obj.ubBombOwner,
+                bActionValue = 0, //obj.ubBombOwner,
+                ubTolerance = 0, //obj.ubBombOwner,
+                bKeyStatus = new sbyte[6], //obj.ubBombOwner,
+                ubKeyID = 0, //obj.ubBombOwner,
+                ubOwnerProfile = 0, //obj.ubBombOwner,
+
+                ubGunAmmoType = ammo.AmmoTypeByte(),
+                usGunAmmoItem = Convert.ToUInt16(ammo.itemIndex),
+                usBombItem = 0, //obj.usBombItem,
+            };
+
+            if (ammo is { capacity: > 0 })
+            {
+                newObj.ubGunShotsLeft = Convert.ToByte(ammo.capacity);
+                newObj.ubShotsLeft = FillShotsLeft(Convert.ToByte(ammo.capacity), ubPerPocket);
+            }
+            else
+            {
+                newObj.ubGunShotsLeft = 30;
+                newObj.ubShotsLeft = FillShotsLeft(30, ubPerPocket);
+            }
+
+            _soldier.inv[(int)slot] = newObj;
+
+            var invSlot = inventoryControl1.InventorySlots[slot];
+
+            invSlot.Item = newObj.Item;
+            invSlot.ButtonText = GetObjectName(newObj);
+            invSlot.ButtonImage = Exts.GetItemImageFilename(newObj.Item);
+            invSlot.AsteriskVisible = HasAttachments(newObj);
+            invSlot.Status = GetStatus(newObj);
+            invSlot.BulletsCount = GetShotsLeft(newObj);
+            invSlot.Count = GetCnt(newObj);
         }
     }
 }

@@ -40,9 +40,11 @@
             tabPage2 = new TabPage();
             inventoryControl1 = new InventoryControl();
             panel3 = new Panel();
+            label1 = new Label();
             ReloadAllBtn = new Button();
             RepearAllBtn = new Button();
             SoldiersLst = new ListBox();
+            GetAmmoBtn = new Button();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             tabControl1.SuspendLayout();
@@ -157,6 +159,8 @@
             // 
             // panel3
             // 
+            panel3.Controls.Add(GetAmmoBtn);
+            panel3.Controls.Add(label1);
             panel3.Controls.Add(ReloadAllBtn);
             panel3.Controls.Add(RepearAllBtn);
             panel3.Dock = DockStyle.Top;
@@ -164,6 +168,15 @@
             panel3.Name = "panel3";
             panel3.Size = new Size(1258, 48);
             panel3.TabIndex = 1;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(783, 14);
+            label1.Name = "label1";
+            label1.Size = new Size(244, 15);
+            label1.TabIndex = 2;
+            label1.Text = "* right-click on the slot to open attachments.";
             // 
             // ReloadAllBtn
             // 
@@ -196,6 +209,16 @@
             SoldiersLst.TabIndex = 0;
             SoldiersLst.SelectedIndexChanged += SoldiersLst_SelectedIndexChanged;
             // 
+            // GetAmmoBtn
+            // 
+            GetAmmoBtn.Location = new Point(174, 11);
+            GetAmmoBtn.Name = "GetAmmoBtn";
+            GetAmmoBtn.Size = new Size(75, 23);
+            GetAmmoBtn.TabIndex = 3;
+            GetAmmoBtn.Text = "Get ammo";
+            GetAmmoBtn.UseVisualStyleBackColor = true;
+            GetAmmoBtn.Click += GetAmmoBtn_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -211,6 +234,7 @@
             tabControl1.ResumeLayout(false);
             tabPage2.ResumeLayout(false);
             panel3.ResumeLayout(false);
+            panel3.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -230,5 +254,7 @@
         private Panel panel3;
         private Button ReloadAllBtn;
         private Button RepearAllBtn;
+        private Label label1;
+        private Button GetAmmoBtn;
     }
 }

@@ -46,3 +46,11 @@ public static class Exts
         return Program.ImageNotFound;
     }
 }
+
+public enum AttachmentSlot
+{
+    Slot1 = 0,
+    Slot2 = 1,
+    Slot3 = 2,
+    Slot4 = 3,
+}
